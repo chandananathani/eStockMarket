@@ -1,0 +1,21 @@
+version: '3.4'
+
+services:
+  stockmarketdb: 
+    container_name: stockmarketdb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  stockmarket.api:
+    container_name: stockmarket.api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "MongoDatabaseConnectionsettings1:ConnectionString=mongodb://stockmarketdb:27017"
+      - "MongoDatabaseConnectionsettings2:ConnectionString=mongodb://stockmarketdb:27017"
+    depends_on:
+      - stockmarketdb
+    ports:
+      - "8000:80"

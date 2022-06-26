@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  stockmarketdb:
+    image: mongo
+  stockmarket.api:
+    image: ${DOCKER_REGISTRY-}stockmarketapi
+    build:
+      context: .
+      dockerfile: Services/StockMarket/StockMarket.API/Dockerfile
+
+volumes:
+  mongo_data:
