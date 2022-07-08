@@ -7,9 +7,15 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Services", "Services", "{C4
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StockMarket", "StockMarket", "{BA470D9C-6A29-4C6C-8CA3-7057FE6D6556}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarket.API", "Services\StockMarket\StockMarket.API\StockMarket.API.csproj", "{2DB2B223-C1B4-4B88-A89A-1EF44F4D76F7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StockMarket.API", "Services\StockMarket\StockMarket.API\StockMarket.API.csproj", "{2DB2B223-C1B4-4B88-A89A-1EF44F4D76F7}"
 EndProject
 Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{BC82F18F-2B4D-430B-9DB7-DE643235BD6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarket.Data", "Services\StockMarket\StockMarket.Data\StockMarket.Data.csproj", "{6083AA4E-01AC-4013-875D-A4F4F92C9485}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarket.Business", "Services\StockMarket\StockMarket.Business\StockMarket.Business.csproj", "{18B516CD-EEA0-4D0C-9C28-9BA8B862ADF1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockMarket.Model", "Services\StockMarket\StockMarket.Model\StockMarket.Model.csproj", "{06003598-7413-4A74-8CFC-1C51C897ED2D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -25,6 +31,18 @@ Global
 		{BC82F18F-2B4D-430B-9DB7-DE643235BD6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BC82F18F-2B4D-430B-9DB7-DE643235BD6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BC82F18F-2B4D-430B-9DB7-DE643235BD6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6083AA4E-01AC-4013-875D-A4F4F92C9485}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6083AA4E-01AC-4013-875D-A4F4F92C9485}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6083AA4E-01AC-4013-875D-A4F4F92C9485}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6083AA4E-01AC-4013-875D-A4F4F92C9485}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18B516CD-EEA0-4D0C-9C28-9BA8B862ADF1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18B516CD-EEA0-4D0C-9C28-9BA8B862ADF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18B516CD-EEA0-4D0C-9C28-9BA8B862ADF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18B516CD-EEA0-4D0C-9C28-9BA8B862ADF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{06003598-7413-4A74-8CFC-1C51C897ED2D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{06003598-7413-4A74-8CFC-1C51C897ED2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{06003598-7413-4A74-8CFC-1C51C897ED2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{06003598-7413-4A74-8CFC-1C51C897ED2D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -32,6 +50,9 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{BA470D9C-6A29-4C6C-8CA3-7057FE6D6556} = {C4F9BBA2-C667-460D-848E-22B6A7F4751C}
 		{2DB2B223-C1B4-4B88-A89A-1EF44F4D76F7} = {BA470D9C-6A29-4C6C-8CA3-7057FE6D6556}
+		{6083AA4E-01AC-4013-875D-A4F4F92C9485} = {BA470D9C-6A29-4C6C-8CA3-7057FE6D6556}
+		{18B516CD-EEA0-4D0C-9C28-9BA8B862ADF1} = {BA470D9C-6A29-4C6C-8CA3-7057FE6D6556}
+		{06003598-7413-4A74-8CFC-1C51C897ED2D} = {BA470D9C-6A29-4C6C-8CA3-7057FE6D6556}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {1211D1AF-81F2-4DF8-935C-3371EF885A15}

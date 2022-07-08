@@ -8,6 +8,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Data\**" />
+    <Compile Remove="Entities\**" />
+    <Compile Remove="Repositories\**" />
+    <Content Remove="Data\**" />
+    <Content Remove="Entities\**" />
+    <Content Remove="Repositories\**" />
+    <EmbeddedResource Remove="Data\**" />
+    <EmbeddedResource Remove="Entities\**" />
+    <EmbeddedResource Remove="Repositories\**" />
+    <None Remove="Data\**" />
+    <None Remove="Entities\**" />
+    <None Remove="Repositories\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
     <PackageReference Include="MongoDB.Driver" Version="2.16.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="5.6.3" />
@@ -15,9 +30,11 @@
 
 	<ItemGroup>
 		<Folder Include="Controllers" />
-		<Folder Include="Data" />
-		<Folder Include="Entities" />
-		<Folder Include="Repositories" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\StockMarket.Business\StockMarket.Business.csproj" />
+	  <ProjectReference Include="..\StockMarket.Data\StockMarket.Data.csproj" />
 	</ItemGroup>
 	
 

@@ -6,8 +6,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
-using StockMarket.API.Data;
-using StockMarket.API.Repositories;
+using StockMarket.Business;
+using StockMarket.Business.CompanyBusiness;
+using StockMarket.Business.StockBusiness;
+using StockMarket.Data.CompanyData;
+using StockMarket.Data.StockData;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +30,7 @@ namespace StockMarket.API
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-
+            services.AddApplicationServices();
             services.AddControllers();
             services.AddSwaggerGen(c =>
             {
