@@ -5,6 +5,6 @@ namespace StockMarket.Data.StockData
 {
     public interface IStockDataContext
     {
-         IMongoCollection<Stock> StockDetails { get; }
+        IMongoCollection<Stock> StockDetails { get; }
     }
 }

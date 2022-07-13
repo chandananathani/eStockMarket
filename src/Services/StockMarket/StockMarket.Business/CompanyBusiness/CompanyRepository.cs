@@ -1,24 +1,26 @@
 ﻿using MongoDB.Driver;
+using StockMarket.Data.CompanyData;
+using StockMarket.Data.StockData;
+using StockMarket.Model.CompanyModel;
+using StockMarket.Model.StockModel;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
-using StockMarket.Business.CompanyBusiness;
-using StockMarket.Model.CompanyModel;
-using StockMarket.Data.CompanyData;
 
 namespace StockMarket.Business.CompanyBusiness
 {
     public class CompanyRepository : ICompanyRepository
     {
         private readonly ICompanyDataContext _context;
+        private readonly IStockDataContext _stockcontext;
         public CompanyRepository(ICompanyDataContext context)
         {
-            _context = context??throw new ArgumentNullException(nameof(context));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task RegisterCompany(Company company)
         {
+            company.CreatedDate = DateTime.Now;           
             await _context.CompanyDetails.InsertOneAsync(company);
         }
         public async Task<IEnumerable<Company>> GetAllCompanys()
@@ -32,16 +34,20 @@ namespace StockMarket.Business.CompanyBusiness
         {
             return await _context
                          .CompanyDetails
-                         .Find(c=>c.CompanyCode==CompanyCode)
+                         .Find(c => c.CompanyCode == CompanyCode)
                          .FirstOrDefaultAsync();
         }
 
         public async Task<bool> DeleteCompany(string CompanyCode)
         {
-            FilterDefinition<Company> filter = Builders<Company>.Filter.Eq(c => c.CompanyCode, CompanyCode);
-            DeleteResult deleteResult = await _context.CompanyDetails.DeleteOneAsync(filter);
-            return deleteResult.IsAcknowledged && deleteResult.DeletedCount > 0;
+            FilterDefinition<Company> companysfilter = Builders<Company>.Filter.Eq(c => c.CompanyCode, CompanyCode);
+            FilterDefinition<Stock> stockfilter = Builders<Stock>.Filter.Eq(c => c.CompanyCode, CompanyCode);
+            DeleteResult deleteCompanyResult = await _context.CompanyDetails.DeleteOneAsync(companysfilter);
+            DeleteResult deleteStockResult = await _stockcontext.StockDetails.DeleteOneAsync(stockfilter);
+            return deleteCompanyResult.IsAcknowledged && deleteCompanyResult.DeletedCount > 0 
+                && deleteStockResult.IsAcknowledged&& deleteStockResult.DeletedCount>0;
 
-        }   
+
+        }
     }
 }

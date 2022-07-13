@@ -2,10 +2,6 @@
 using StockMarket.Business.Queries.CompanyQueries;
 using StockMarket.Business.Queries.StockQueries;
 using StockMarket.Model.StockModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace StockMarket.Business.Mappings
 {
@@ -14,7 +10,7 @@ namespace StockMarket.Business.Mappings
         public MappingProfile()
         {
             CreateMap<StockDetails, StockDetailsvm>().ReverseMap();
-            CreateMap<Stock, CreateStockCommand>().ReverseMap();           
+            CreateMap<Stock, CreateStockCommand>().ReverseMap();
         }
     }
 }

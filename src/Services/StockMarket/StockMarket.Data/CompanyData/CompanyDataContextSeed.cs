@@ -1,9 +1,8 @@
 ﻿using MongoDB.Driver;
+using StockMarket.Model.CompanyModel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using StockMarket.Model.CompanyModel;
 
 namespace StockMarket.Data.CompanyData
 {
@@ -18,7 +17,7 @@ namespace StockMarket.Data.CompanyData
             //    companyCollection.InsertManyAsync(GetPreconfiguredCompanys());
             //}
         }
-       private static IEnumerable<Company> GetPreconfiguredCompanys()
+        private static IEnumerable<Company> GetPreconfiguredCompanys()
         {
             return new List<Company>()
              {
@@ -28,7 +27,7 @@ namespace StockMarket.Data.CompanyData
                 CompanyName="Company1",
                 CompanyCEO="CEO1",
                 CompanyWebsite="www.company1.com",
-                CompanyTurnover="20M",
+                CompanyTurnover=20000000,
                 StockExchange="NSE",
                 CreatedDate=DateTime.Now
                 },
@@ -38,7 +37,7 @@ namespace StockMarket.Data.CompanyData
                 CompanyName="Company2",
                 CompanyCEO="CEO2",
                 CompanyWebsite="www.company2.com",
-                CompanyTurnover="30M",
+                CompanyTurnover=30000000,
                 StockExchange="BSE",
                 CreatedDate=DateTime.Now
                 },
@@ -48,7 +47,7 @@ namespace StockMarket.Data.CompanyData
                 CompanyName="Company3",
                 CompanyCEO="CEO3",
                 CompanyWebsite="www.company3.com",
-                CompanyTurnover="40M",
+                CompanyTurnover=40000000,
                 StockExchange="HSE",
                 CreatedDate=DateTime.Now
                 },
@@ -58,7 +57,7 @@ namespace StockMarket.Data.CompanyData
                 CompanyName="Company4",
                 CompanyCEO="CEO4",
                 CompanyWebsite="www.company4.com",
-                CompanyTurnover="50M",
+                CompanyTurnover=50000000,
                 StockExchange="DSE",
                  CreatedDate=DateTime.Now
                 },
@@ -68,7 +67,7 @@ namespace StockMarket.Data.CompanyData
                 CompanyName="Company5",
                 CompanyCEO="CEO5",
                 CompanyWebsite="www.company5.com",
-                CompanyTurnover="10M",
+                CompanyTurnover=70000000,
                 StockExchange="ZSE",
                  CreatedDate=DateTime.Now
                 }

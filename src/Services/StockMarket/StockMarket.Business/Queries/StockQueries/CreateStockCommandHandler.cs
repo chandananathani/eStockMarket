@@ -1,13 +1,9 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.Extensions.Logging;
-using StockMarket.Business.CompanyBusiness;
 using StockMarket.Business.StockBusiness;
-using StockMarket.Model.CompanyModel;
 using StockMarket.Model.StockModel;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -27,6 +23,8 @@ namespace StockMarket.Business.Queries.CompanyQueries
         public async Task<string> Handle(CreateStockCommand request, CancellationToken cancellationToken)
         {
             var stockEntity = _mapper.Map<Stock>(request);
+            stockEntity.CreatedDate = DateTime.Now;
+            stockEntity.CreatedBy = "Chandana";
             await _stockRepository.AddCompanyStockPrice(stockEntity);
 
             _logger.LogInformation($"Stock details for {stockEntity.CompanyCode} is successfully created.");

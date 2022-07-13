@@ -3,11 +3,28 @@ version: '3.4'
 services:
   stockmarketdb:
     image: mongo
+
+  stockmarketsqldb:
+    image: mcr.microsoft.com/mssql/server:2017-latest
+  
   stockmarket.api:
     image: ${DOCKER_REGISTRY-}stockmarketapi
     build:
       context: .
       dockerfile: Services/StockMarket/StockMarket.API/Dockerfile
 
+  stockmarketsql.api:
+    image: ${DOCKER_REGISTRY-}stockmarketsqlapi
+    build:
+      context: .
+      dockerfile: Services/StockMarketSql/StockMarketSql.API/Dockerfile
+
+  ocelotapigw:
+    image: ${DOCKER_REGISTRY-}ocelotapigw
+    build:
+      context: .
+      dockerfile: ApiGateways/OcelotApiGw/Dockerfile
+
 volumes:
   mongo_data:
+

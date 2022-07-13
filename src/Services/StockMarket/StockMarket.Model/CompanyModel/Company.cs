@@ -1,8 +1,5 @@
 ﻿using MongoDB.Bson.Serialization.Attributes;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace StockMarket.Model.CompanyModel
 {
@@ -10,13 +7,14 @@ namespace StockMarket.Model.CompanyModel
     {
         [BsonId]
         //[BsonRepresentation(MongoDB.Bson.BsonType.ObjectId)]
-        public string CompanyCode { get; set; }        
+        public string CompanyCode { get; set; }
         public string CompanyName { get; set; }
         public string CompanyCEO { get; set; }
         public string CompanyWebsite { get; set; }
-        public string CompanyTurnover { get; set; }
+        public int CompanyTurnover { get; set; }
         public string StockExchange { get; set; }
         public DateTime CreatedDate { get; set; }
-        
+        public string CreatedBy { get; set; }
+
     }
 }

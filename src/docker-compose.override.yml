@@ -9,13 +9,43 @@ services:
     volumes:
       - mongo_data:/data/db
 
+  stockmarketsqldb:
+    container_name: stockmarketsqldb
+    environment:
+        ACCEPT_EULA: "Y"
+    restart: always
+    ports:
+        - "1433:1433"
+
   stockmarket.api:
     container_name: stockmarket.api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - "MongoDatabaseConnectionsettings1:ConnectionString=mongodb://stockmarketdb:27017"
-      - "MongoDatabaseConnectionsettings2:ConnectionString=mongodb://stockmarketdb:27017"
+      - "DatabaseSettings:ConnectionString=mongodb://stockmarketdb:27017"      
     depends_on:
       - stockmarketdb
     ports:
       - "8000:80"
+
+  stockmarketsql.api:
+    container_name: stockmarketsql.api
+    environment:
+        - ASPNETCORE_ENVIRONMENT=Development
+        - "ConnectionStrings:StockmarketDatabase=Server=CTSDOTNET237;Database=eStockMarket;Trusted_Connection=True;" 
+    depends_on:
+        - stockmarketsqldb        
+    ports:
+        - "8001:80"
+
+  ocelotapigw:
+    container_name: ocelotapigw
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+    depends_on:
+        - stockmarket.api
+    ports:
+      - "8010:80"
+      - "443"
+    volumes:
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro

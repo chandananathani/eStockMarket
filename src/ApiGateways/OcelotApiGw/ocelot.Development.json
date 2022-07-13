@@ -1,0 +1,63 @@
+{
+  "Routes": [
+    //Company API
+    {
+      "DownstreamPathTemplate": "/api/v1.0/Company",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "stockmarket.api",
+          "Port": "80"
+        }
+      ],
+      "UpstreamPathTemplate": "/Company",
+      "UpstreamHttpMethod": [ "GET", "POST" ],
+      "FileCacheOptions": { "TtlSeconds": 30 }
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1.0/Company/{CompanyCode}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "stockmarket.api",
+          "Port": "80"
+        }
+      ],
+      "UpstreamPathTemplate": "/Company/{CompanyCode}",
+      "UpstreamHttpMethod": [ "GET", "DELETE" ]
+    },
+    //Stock API
+    {
+      "DownstreamPathTemplate": "/api/v1.0/Stock",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "stockmarket.api",
+          "Port": "80"
+        }
+      ],
+      "UpstreamPathTemplate": "/Stock",
+      "UpstreamHttpMethod": [ "POST" ],
+      "FileCacheOptions": { "TtlSeconds": 30 }
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1.0/Stock/{CompanyCode}/{StartDate}/{EndDate}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "stockmarket.api",
+          "Port": "80"
+        }
+      ],
+      "UpstreamPathTemplate": "/Stock/{CompanyCode}/{StartDate}/{EndDate}",
+      "UpstreamHttpMethod": [ "GET" ]
+    }
+  ],
+  "AuthenticationOptions": {
+    "AuthenticationProviderKey": "IdentityApiKey",
+    "AllowedScopes": []
+  },
+  "GlobalConfiguration": {
+    "BaseUrl": "https://localhost:5001"
+  }
+}

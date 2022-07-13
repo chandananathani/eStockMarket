@@ -1,22 +1,19 @@
 ﻿using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using StockMarket.Data.Common;
 using StockMarket.Model.StockModel;
 
 namespace StockMarket.Data.StockData
 {
     public class StockDataContext : IStockDataContext
     {
-        public StockDataContext(IConfiguration configuration)
+       public StockDataContext(IDatabaseSettings settings)
         {
-            var client = new MongoClient(configuration.GetValue<string>("MongoDatabaseConnectionsettings2:ConnectionString"));
-            var database = client.GetDatabase(configuration.GetValue<string>("MongoDatabaseConnectionsettings2:DatabaseName"));
-            StockDetails = database.GetCollection<Stock>(configuration.GetValue<string>("MongoDatabaseConnectionsettings2:CollectionName"));
+            var client = new MongoClient(settings.ConnectionString);
+            var database = client.GetDatabase(settings.DatabaseName);
+            StockDetails = database.GetCollection<Stock>(settings.StockCollectionName);
             StockDataContextSeed.StockDetailsSeedData(StockDetails);
         }
-       public IMongoCollection<Stock> StockDetails { get; }
+        public IMongoCollection<Stock> StockDetails { get; }
     }
 }

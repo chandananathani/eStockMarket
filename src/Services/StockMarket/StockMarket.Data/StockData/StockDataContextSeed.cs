@@ -1,14 +1,11 @@
 ﻿using MongoDB.Driver;
 using StockMarket.Model.StockModel;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace StockMarket.Data.StockData
 {
     public class StockDataContextSeed
-    {       
+    {
         public static void StockDetailsSeedData(IMongoCollection<Stock> stockDetailsCollection)
         {
             stockDetailsCollection.Find(s => true).Any();
@@ -17,7 +14,7 @@ namespace StockMarket.Data.StockData
             //{
             //    stockDetailsCollection.InsertManyAsync(GetPreconfiguredStockDetails());
             //}
-        }  
+        }
         //private static IEnumerable<Stock> GetPreconfiguredStockDetails()
         //{
         //    return new List<Stock>()

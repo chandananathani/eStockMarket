@@ -2,7 +2,6 @@
 using StockMarket.Data.StockData;
 using StockMarket.Model.StockModel;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -23,11 +22,11 @@ namespace StockMarket.Business.StockBusiness
         public async Task<StockDetails> GetCompanyStockPrice(string CompanyCode, string StartDate, string EndDate)
         {
             StockDetails stockDetails = new StockDetails();
-            var list= await _context
+            var list = await _context
                          .StockDetails
                          .Find(c => c.CompanyCode == CompanyCode && c.CreatedDate >= Convert.ToDateTime(StartDate) && c.CreatedDate <= Convert.ToDateTime(EndDate))
                          .ToListAsync();
-            if (list!= null && list.Count>0)
+            if (list != null && list.Count > 0)
             {
                 double maxStockProce = list.Max(s => s.StockPrice);
                 double minStockProce = list.Min(s => s.StockPrice);
@@ -39,7 +38,7 @@ namespace StockMarket.Business.StockBusiness
             }
 
             return stockDetails;
-                        
+
         }
     }
 }
