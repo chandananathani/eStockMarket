@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using StockMarket.API.Common;
 using StockMarket.Business.Common;
@@ -24,16 +25,18 @@ namespace StockMarket.API.Controllers
     [ApiController]
     public class TokenController : ControllerBase
     {
-        public IConfiguration _configuration;
+        private readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
         private readonly ICommonRepository _repository;
         private string generatedToken = null;
+        private readonly ILogger<TokenController> _logger;
 
-        public TokenController(IConfiguration config, ITokenService tokenService, ICommonRepository repository)
+        public TokenController(IConfiguration config, ITokenService tokenService, ICommonRepository repository, ILogger<TokenController> logger)
         {
             _configuration = config ?? throw new ArgumentNullException(nameof(config));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _repository= repository ?? throw new ArgumentNullException(nameof(repository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         
         
@@ -42,31 +45,42 @@ namespace StockMarket.API.Controllers
         [ProducesResponseType(typeof(User), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<User>> GenerateToken(string Email)
         {
-            if (string.IsNullOrEmpty(Email))
+            try
             {
-                return BadRequest("Please provide credentials");
-            }
-
-            IActionResult response = Unauthorized();
-            User validUser = await _repository.GetUserDetails(Email);
-
-            if (validUser != null)
-            {
-                generatedToken = _tokenService.BuildToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), validUser);
-
-                if (generatedToken != null)
+                if (string.IsNullOrEmpty(Email))
                 {
-                    HttpContext.Session.SetString("Token", generatedToken);
-                    return Ok(generatedToken);
+                    return BadRequest("Please provide credentials");
+                }
+
+                IActionResult response = Unauthorized();
+                User validUser = await _repository.GetUserDetails(Email);
+
+                if (validUser != null)
+                {
+                    generatedToken = _tokenService.BuildToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), validUser);
+
+                    if (generatedToken != null)
+                    {
+                        HttpContext.Session.SetString("Token", generatedToken);
+                        _logger.LogInformation("Token Created Sucessfully");
+                        return Ok(generatedToken);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Invalid JWT token");
+                        return BadRequest("Invalid JWT Token");
+                    }
                 }
                 else
                 {
-                    return BadRequest("Invalid Token");
+                    _logger.LogWarning("User does not exists");
+                    return BadRequest("User does not exists");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("User does not exists");
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
 
@@ -75,9 +89,16 @@ namespace StockMarket.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<ActionResult<User>> Createuser([FromBody] User user)
         {
-            await _repository.CreateUser(user);
-            return Ok();
-
+            try
+            {
+                await _repository.CreateUser(user);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
+            }
         }
     }
 }

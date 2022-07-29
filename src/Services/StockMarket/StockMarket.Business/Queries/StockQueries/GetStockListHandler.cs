@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using StockMarket.Business.Queries.StockQueries;
 using StockMarket.Business.StockBusiness;
 using System;
@@ -12,16 +13,25 @@ namespace StockMarket.Business.Queries.CompanyQueries
     {
         private readonly IStockRepository _stockRepository;
         private readonly IMapper _mapper;
-        public GetStockListHandler(IStockRepository stockRepository, IMapper mapper)
+        private readonly ILogger<GetStockListHandler> _logger;
+        public GetStockListHandler(IStockRepository stockRepository, IMapper mapper,ILogger<GetStockListHandler> logger)
         {
             _stockRepository = stockRepository ?? throw new ArgumentNullException(nameof(stockRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         public async Task<StockDetailsvm> Handle(GetStockListQuery request, CancellationToken cancellationToken)
         {
-            var stockList = await _stockRepository.GetCompanyStockPrice(request.CompanyCode, request.StartDate, request.EndDate);
-            return _mapper.Map<StockDetailsvm>(stockList);
-
+            try
+            {
+                var stockList = await _stockRepository.GetCompanyStockPrice(request.CompanyCode, request.StartDate, request.EndDate);
+                return _mapper.Map<StockDetailsvm>(stockList);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return null;
+            }
         }
 
     }

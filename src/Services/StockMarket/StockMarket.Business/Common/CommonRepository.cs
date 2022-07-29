@@ -12,27 +12,41 @@ namespace StockMarket.Business.Common
     public class CommonRepository : ICommonRepository
     {
         private readonly ICommonDataContext _context;
-       public CommonRepository(ICommonDataContext context)
+        private readonly ILogger<CommonRepository> _logger;
+        public CommonRepository(ICommonDataContext context, ILogger<CommonRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-
+        List<User> user = new List<User>();
         public async Task CreateUser(User user)
         {
-            user.CreatedDate = DateTime.Now;
-            await _context.UserDetails.InsertOneAsync(user);
+            try
+            {
+                user.CreatedDate = DateTime.Now;
+                await _context.UserDetails.InsertOneAsync(user);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+            }
         }
 
         public async Task<User> GetUserDetails(string Email)
         {
-            FilterDefinition<User> filter = Builders<User>.Filter.Eq(c=>c.Email,Email);
-            var test= _context
-                         .UserDetails.Find(c => true)
-                         .ToListAsync();
-            return  await _context
-                         .UserDetails
-                          .Find(filter)
-                          .FirstOrDefaultAsync();
+            FilterDefinition<User> filter = Builders<User>.Filter.Eq(c => c.Email, Email);
+            try
+            {                
+                return await _context
+                             .UserDetails
+                              .Find(filter)
+                              .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return null;
+            }
         }
     }
 }

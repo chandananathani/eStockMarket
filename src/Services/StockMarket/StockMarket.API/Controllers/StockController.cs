@@ -25,6 +25,10 @@ namespace StockMarket.API.Controllers
         private readonly IMediator _mediator;
         private readonly ITokenService _tokenService;
         public readonly IConfiguration _configuration;
+        public StockController(IStockRepository repository)
+        {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+        }
         public StockController(IStockRepository repository, ILogger<StockController> logger, IMediator mediator, ITokenService tokenService, IConfiguration config)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -39,21 +43,31 @@ namespace StockMarket.API.Controllers
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<ActionResult<Stock>> add([FromBody] CreateStockCommand command)
         {
-            string token = HttpContext.Session.GetString("Token");
-            if (token == null)
+            try
             {
-                return BadRequest("Please Provide JWT token");
+                string token = HttpContext.Session.GetString("Token");
+                if (token == null)
+                {
+                    _logger.LogError("Please Provide JWT token");
+                    return BadRequest("Please Provide JWT token");
+                }
+                if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
+                {
+                    var result = await _mediator.Send(command);
+                    _logger.LogInformation("add Api call is succeded");
+                    return Ok(result);
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid JWT token");
+                    return BadRequest("Invalid JWT token");
+                }
             }
-            if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
+            catch (Exception ex)
             {
-                var result = await _mediator.Send(command);
-                return Ok(result);
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
-            else
-            {
-                return BadRequest("Invalid JWT token");
-            }
-            
 
         }
 
@@ -63,24 +77,35 @@ namespace StockMarket.API.Controllers
         [ProducesResponseType(typeof(IEnumerable<StockDetailsvm>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<Stock>> get(string CompanyCode, string StartDate, string EndDate)
         {
-            string token = HttpContext.Session.GetString("Token");
-            if (token == null)
+            try
             {
-                return BadRequest("Please Provide JWT token");
-            }
-            if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
-            {
-                var stockDetails = new GetStockListQuery(CompanyCode, StartDate, EndDate);
-                var _stockDetails = await _mediator.Send(stockDetails);
-                if (_stockDetails == null)
+                string token = HttpContext.Session.GetString("Token");
+                if (token == null)
                 {
-                    _logger.LogError($"Stock Details with Company Code:{CompanyCode}, not found");
+                    _logger.LogError("Please Provide JWT token");
+                    return BadRequest("Please Provide JWT token");
                 }
-                return Ok(_stockDetails);
+                if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
+                {
+                    var stockDetails = new GetStockListQuery(CompanyCode, StartDate, EndDate);
+                    var _stockDetails = await _mediator.Send(stockDetails);
+                    if (_stockDetails == null)
+                    {
+                        _logger.LogError($"Stock Details with Company Code:{CompanyCode}, not found");
+                    }
+                    _logger.LogInformation("get Api call is succeded");
+                    return Ok(_stockDetails);
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid JWT token");
+                    return BadRequest("Invalid JWT token");
+                }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("Invalid JWT token");
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
     }

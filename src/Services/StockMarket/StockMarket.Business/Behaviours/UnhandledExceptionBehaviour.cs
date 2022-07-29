@@ -13,7 +13,7 @@ namespace StockMarket.Business.Behaviours
 
         public UnhandledExceptionBehaviour(ILogger<TRequest> logger)
         {
-            _logger = logger;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)

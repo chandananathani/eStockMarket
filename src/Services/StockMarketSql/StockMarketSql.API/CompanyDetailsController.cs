@@ -36,22 +36,32 @@ namespace StockMarketSql.API
         [ProducesResponseType(typeof(CompanyDetails), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<CompanyDetails>> register([FromBody] CompanyDetails company)
         {
-            string token = HttpContext.Session.GetString("Token");
-            if (token == null)
+            try
             {
-                return BadRequest("Please Provide JWT token");
+                string token = HttpContext.Session.GetString("Token");
+                if (token == null)
+                {
+                    return BadRequest("Please Provide JWT token");
+                }
+
+                if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
+                {
+                    _repository.RegisterCompany(company);
+                    _logger.LogInformation("register Api call is succeded");
+                    return Ok("Company Details Created Sucessfully");
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid JWT token");
+                    return BadRequest("Invalid JWT token");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
 
-            if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
-            {
-                _repository.RegisterCompany(company);              
-                return Ok("Company Details Created Sucessfully");
-            }
-            else
-            {
-                return BadRequest("Invalid JWT token");
-            }
-
-        }
+}
     }
 }

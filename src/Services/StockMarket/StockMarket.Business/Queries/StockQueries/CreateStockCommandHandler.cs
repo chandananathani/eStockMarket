@@ -22,14 +22,21 @@ namespace StockMarket.Business.Queries.CompanyQueries
         }
         public async Task<string> Handle(CreateStockCommand request, CancellationToken cancellationToken)
         {
-            var stockEntity = _mapper.Map<Stock>(request);
-            stockEntity.CreatedDate = DateTime.Now;
-            stockEntity.CreatedBy = "Chandana";
-            await _stockRepository.AddCompanyStockPrice(stockEntity);
+            try
+            {
+                var stockEntity = _mapper.Map<Stock>(request);
+                stockEntity.CreatedDate = DateTime.Now;                
+                await _stockRepository.AddCompanyStockPrice(stockEntity);
 
-            _logger.LogInformation($"Stock details for {stockEntity.CompanyCode} is successfully created.");
+                _logger.LogInformation($"Stock details for {stockEntity.CompanyCode} is successfully created.");
 
-            return stockEntity.CompanyCode;
+                return stockEntity.CompanyCode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return null;
+            }
         }
     }
 }

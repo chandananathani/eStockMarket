@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using StockMarketSql.Models;
 using System;
 using System.Collections.Generic;
@@ -12,38 +13,48 @@ namespace StockMarkerSql.Data
     public class CommonDetailsData : ICommonDetailsData
     {
         private readonly IConfiguration _configuration;
-        public CommonDetailsData(IConfiguration configuration)
+        private readonly ILogger<CommonDetailsData> _logger;
+        public CommonDetailsData(IConfiguration configuration, ILogger<CommonDetailsData> logger)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
         public UserInfo GetUserDetails(string email)
         {
-            string connectionString = _configuration["ConnectionStrings:StockmarketDatabase"];
-            UserInfo userInfo = new UserInfo();
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                //SqlDataReader
-                connection.Open();
-                SqlCommand command = new SqlCommand("GetUserDetails", connection);
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue("@Email", email);
-                SqlDataAdapter da = new SqlDataAdapter(command);
-                DataSet ds = new DataSet();
-                da.Fill(ds);
-                if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                string connectionString = _configuration["ConnectionStrings:StockmarketDatabase"];
+                UserInfo userInfo = new UserInfo();
+                using (SqlConnection connection = new SqlConnection(connectionString))
                 {
-                    userInfo.UserId = (string)(ds.Tables[0].Rows[0]["UserId"]);
-                    userInfo.FirstName = (string)(ds.Tables[0].Rows[0]["FirstName"]);
-                    userInfo.LastName = (string)(ds.Tables[0].Rows[0]["LastName"]);
-                    userInfo.UserName = (string)(ds.Tables[0].Rows[0]["UserName"]);
-                    userInfo.Email = (string)(ds.Tables[0].Rows[0]["Email"]);
-                    userInfo.Password = (string)(ds.Tables[0].Rows[0]["Password"]);
-                    userInfo.IsActive = (Int32)(ds.Tables[0].Rows[0]["IsActive"]);
-                    userInfo.CreatedDate = (DateTime)(ds.Tables[0].Rows[0]["CreatedDate"]);
+                    //SqlDataReader
+                    connection.Open();
+                    SqlCommand command = new SqlCommand("GetUserDetails", connection);
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@Email", email);
+                    SqlDataAdapter da = new SqlDataAdapter(command);
+                    DataSet ds = new DataSet();
+                    da.Fill(ds);
+                    if (ds != null && ds.Tables.Count > 0 && ds.Tables[0].Rows.Count > 0)
+                    {
+                        userInfo.UserId = (string)(ds.Tables[0].Rows[0]["UserId"]);
+                        userInfo.FirstName = (string)(ds.Tables[0].Rows[0]["FirstName"]);
+                        userInfo.LastName = (string)(ds.Tables[0].Rows[0]["LastName"]);
+                        userInfo.UserName = (string)(ds.Tables[0].Rows[0]["UserName"]);
+                        userInfo.Email = (string)(ds.Tables[0].Rows[0]["Email"]);
+                        userInfo.Password = (string)(ds.Tables[0].Rows[0]["Password"]);
+                        userInfo.IsActive = (Int32)(ds.Tables[0].Rows[0]["IsActive"]);
+                        userInfo.CreatedDate = (DateTime)(ds.Tables[0].Rows[0]["CreatedDate"]);
+                    }
+                    connection.Close();
                 }
-                connection.Close();
+                return userInfo;
             }
-            return userInfo;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return null;
+            }
         }
     }
 }
