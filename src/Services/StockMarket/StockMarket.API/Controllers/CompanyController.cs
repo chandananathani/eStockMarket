@@ -24,25 +24,24 @@ namespace StockMarket.API.Controllers
         private readonly ICompanyRepository _repository;
         private readonly ILogger<CompanyController> _logger;
         private readonly IConfiguration _configuration;
-        private readonly ITokenService _tokenService;
-       
+        private readonly ITokenService _tokenService;        
+
         public CompanyController(ICompanyRepository repository, ILogger<CompanyController> logger, IConfiguration config, ITokenService tokenService)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = config ?? throw new ArgumentNullException(nameof(config));
-            _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
+            _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));           
         }
 
-        [Authorize]
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<Company>), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<IEnumerable<Company>>> getall()
         {
             try
             {
-                string token = HttpContext.Session.GetString("Token");
-                if (token == null)
+                string token = HttpContext.Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogError("Please Provide JWT token");
                     return BadRequest("Please Provide JWT token");
@@ -51,12 +50,21 @@ namespace StockMarket.API.Controllers
                 if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
                 {
                     var companys = await _repository.GetAllCompanys();
-                    _logger.LogInformation("getall Api call is succeded");
-                    return Ok(companys);
+                    if (companys.Count()>0)
+                    {
+                        _logger.LogInformation("getall Api call is succeded");
+                        return Ok(companys);
+                       
+                    }
+                    else
+                    {
+                        _logger.LogError($"Companies are not found");
+                        return NotFound(companys);
+                    }                   
                 }
                 else
                 {
-                    _logger.LogWarning("Invalid JWT token");
+                    _logger.LogError("Invalid JWT token");
                     return BadRequest("Invalid JWT token");
                 }
             }
@@ -68,7 +76,6 @@ namespace StockMarket.API.Controllers
 
         }
         
-        [Authorize]
         [HttpGet("{CompanyCode}")]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(Company), (int)HttpStatusCode.OK)]
@@ -76,9 +83,9 @@ namespace StockMarket.API.Controllers
         {
             try
             {
-                string token = HttpContext.Session.GetString("Token");
+                string token = HttpContext.Request.Cookies["Token"];
                 Company companys = new Company();
-                if (token == null)
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogError("Please Provide JWT token");
                     return BadRequest("Please Provide JWT token");
@@ -90,13 +97,17 @@ namespace StockMarket.API.Controllers
                     if (companys == null)
                     {
                         _logger.LogError($"Company with Company Code:{CompanyCode}, not found");
+                        return NotFound(companys);
                     }
-                    _logger.LogInformation("info Api call is succeded");
-                    return Ok(companys);
+                    else
+                    {
+                        _logger.LogInformation("info Api call is succeded");
+                        return Ok(companys);
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("Invalid JWT token");
+                    _logger.LogError("Invalid JWT token");
                     return BadRequest("Invalid JWT token");
                 }
             }
@@ -108,15 +119,14 @@ namespace StockMarket.API.Controllers
 
         }
 
-        [Authorize]
         [HttpPost]
         [ProducesResponseType(typeof(Company), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<Company>> register([FromBody] Company company)
         {
             try
             {
-                string token = HttpContext.Session.GetString("Token");
-                if (token == null)
+                string token = HttpContext.Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogError("Please Provide JWT token");
                     return BadRequest("Please Provide JWT token");
@@ -129,7 +139,7 @@ namespace StockMarket.API.Controllers
                 }
                 else
                 {
-                    _logger.LogWarning("Invalid JWT token");
+                    _logger.LogError("Invalid JWT token");
                     return BadRequest("Invalid JWT token");
                 }
             }
@@ -141,15 +151,15 @@ namespace StockMarket.API.Controllers
 
         }
 
-        [Authorize]
         [HttpDelete("{CompanyCode}")]
         [ProducesResponseType(typeof(Company), (int)HttpStatusCode.OK)]
         public async Task<ActionResult> delete(string CompanyCode)
         {
             try
             {
-                string token = HttpContext.Session.GetString("Token");
-                if (token == null)
+                string token = HttpContext.Request.Cookies["Token"];
+                Company companys = new Company();
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogError("Please Provide JWT token");
                     return BadRequest("Please Provide JWT token");
@@ -157,13 +167,22 @@ namespace StockMarket.API.Controllers
 
                 if (_tokenService.ValidateToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), "", token))
                 {
-                    await _repository.DeleteCompany(CompanyCode);
-                    _logger.LogInformation("delete api call is succeded");
-                    return Ok("Company Details deleted sucessfully");
+                    companys = await _repository.GetCompanybyCode(CompanyCode);
+                    if (companys != null)
+                    {
+                        await _repository.DeleteCompany(CompanyCode);
+                        _logger.LogInformation("delete api call is succeded");
+                        return Ok("Company Details deleted sucessfully");
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Company Id: {CompayCode} not found", CompanyCode);
+                        return NotFound("Company Details deleted sucessfully");
+                    }
                 }
                 else
                 {
-                    _logger.LogWarning("Invalid JWT token");
+                    _logger.LogError("Invalid JWT token");
                     return BadRequest("Invalid JWT token");
                 }
             }

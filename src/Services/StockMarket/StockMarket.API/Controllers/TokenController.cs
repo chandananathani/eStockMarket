@@ -52,16 +52,15 @@ namespace StockMarket.API.Controllers
                     return BadRequest("Please provide credentials");
                 }
 
-                IActionResult response = Unauthorized();
                 User validUser = await _repository.GetUserDetails(Email);
 
-                if (validUser != null)
+                if (validUser != null && !string.IsNullOrEmpty(validUser.Email) && !string.IsNullOrWhiteSpace(validUser.Email))
                 {
                     generatedToken = _tokenService.BuildToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), validUser);
 
-                    if (generatedToken != null)
+                    if (!string.IsNullOrEmpty(generatedToken) && !string.IsNullOrWhiteSpace(generatedToken))
                     {
-                        HttpContext.Session.SetString("Token", generatedToken);
+                        //HttpContext.Session.SetString("Token", generatedToken);
                         _logger.LogInformation("Token Created Sucessfully");
                         return Ok(generatedToken);
                     }
@@ -74,7 +73,7 @@ namespace StockMarket.API.Controllers
                 else
                 {
                     _logger.LogWarning("User does not exists");
-                    return BadRequest("User does not exists");
+                    return NotFound("User does not exists");
                 }
             }
             catch (Exception ex)

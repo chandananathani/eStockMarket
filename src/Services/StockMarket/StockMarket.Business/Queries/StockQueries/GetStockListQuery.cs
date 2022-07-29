@@ -2,7 +2,7 @@
 using StockMarket.Business.Queries.StockQueries;
 using System;
 
-namespace StockMarket.Business.Queries.CompanyQueries
+namespace StockMarket.Business.Queries.StockQueries
 {
     public class GetStockListQuery : IRequest<StockDetailsvm>
     {

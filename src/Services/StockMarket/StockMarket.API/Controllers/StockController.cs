@@ -25,10 +25,7 @@ namespace StockMarket.API.Controllers
         private readonly IMediator _mediator;
         private readonly ITokenService _tokenService;
         public readonly IConfiguration _configuration;
-        public StockController(IStockRepository repository)
-        {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-        }
+       
         public StockController(IStockRepository repository, ILogger<StockController> logger, IMediator mediator, ITokenService tokenService, IConfiguration config)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -45,8 +42,8 @@ namespace StockMarket.API.Controllers
         {
             try
             {
-                string token = HttpContext.Session.GetString("Token");
-                if (token == null)
+                string token = HttpContext.Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogError("Please Provide JWT token");
                     return BadRequest("Please Provide JWT token");
@@ -79,8 +76,8 @@ namespace StockMarket.API.Controllers
         {
             try
             {
-                string token = HttpContext.Session.GetString("Token");
-                if (token == null)
+                string token = HttpContext.Request.Cookies["Token"];
+                if (string.IsNullOrEmpty(token) || string.IsNullOrWhiteSpace(token))
                 {
                     _logger.LogError("Please Provide JWT token");
                     return BadRequest("Please Provide JWT token");
@@ -92,9 +89,13 @@ namespace StockMarket.API.Controllers
                     if (_stockDetails == null)
                     {
                         _logger.LogError($"Stock Details with Company Code:{CompanyCode}, not found");
+                        return NotFound(_stockDetails);
                     }
-                    _logger.LogInformation("get Api call is succeded");
-                    return Ok(_stockDetails);
+                    else
+                    {
+                        _logger.LogInformation("get Api call is succeded");
+                        return Ok(_stockDetails);
+                    }
                 }
                 else
                 {

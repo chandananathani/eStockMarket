@@ -1,8 +1,11 @@
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Net.Http.Headers;
 using Microsoft.VisualBasic.CompilerServices;
 using Moq;
 using StockMarket.API;
@@ -28,8 +31,7 @@ namespace StockMarket.UnitTest
         readonly Mock<ILogger<CompanyController>> _logger;
         readonly Mock<IConfiguration> _configuration;
         readonly Mock<ITokenService> _tokenService;
-        readonly CompanyController controller;
-        private const double EXPIRY_DURATION_MINUTES = 30;
+        readonly CompanyController controller;        
 
         public CompanyControllerTest()
         {
@@ -40,28 +42,8 @@ namespace StockMarket.UnitTest
              controller = new CompanyController(_repository.Object, _logger.Object, _configuration.Object, _tokenService.Object);            
         }
 
+        
         #region Get All Companys
-        [Fact]
-        public void BuildToken()
-        {
-
-            var claims = new[] {
-                    new Claim("Id", "123"),
-                    new Claim("FirstName", "Test"),
-                    new Claim("LastName", "Test1"),
-                    new Claim("UserName", "testUser"),
-                    new Claim("Email", "test@gmail.com"),
-                    new Claim(ClaimTypes.NameIdentifier, Guid.NewGuid().ToString())
-                };
-
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf"));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
-            var tokenDescriptor = new JwtSecurityToken("InventoryAuthenticationServer", "InventoryAuthenticationServer", claims,
-                expires: DateTime.Now.AddMinutes(EXPIRY_DURATION_MINUTES), signingCredentials: credentials);
-            var token = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
-            var httpcontext = new DefaultHttpContext();
-            httpcontext.Session.SetString("Token", token);            
-        }
 
         [Fact]
         public async void Task_GetCompanys_Return_OkResult()
@@ -69,10 +51,16 @@ namespace StockMarket.UnitTest
             //Arrange  
             IEnumerable<Company> companies = new List<Company>()
            {
-               new Company(),
-               new Company(),
+               new Company()
            };
-            BuildToken();
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
             _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
 
@@ -80,7 +68,31 @@ namespace StockMarket.UnitTest
             var data = await controller.getall();
            
             //Assert             
-            Assert.IsType<OkObjectResult>(data);            
+            Assert.IsType<OkObjectResult>(data.Result);            
+        }
+
+        [Fact]
+        public void Task_GetCompanys_Return_NotFoundResult()
+        {
+            //Arrange  
+            IEnumerable<Company> companies = new List<Company>();
+          
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
+            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+
+            //Act  
+            var data = controller.getall();
+
+            //Assert  
+            Assert.IsType<NotFoundObjectResult>(data.Result.Result);
         }
 
         [Fact]
@@ -89,19 +101,24 @@ namespace StockMarket.UnitTest
             //Arrange  
             IEnumerable<Company> companies = new List<Company>()
            {
-               new Company(),
-               new Company(),
+               new Company()
            };
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
             _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
 
             //Act  
             var data = controller.getall();
-            data = null;
-
-            if (data != null)
-                //Assert  
-                Assert.IsType<BadRequestResult>(data);
+            
+            //Assert  
+            Assert.IsType<BadRequestObjectResult>(data.Result.Result);
         }
         #endregion
 
@@ -111,65 +128,77 @@ namespace StockMarket.UnitTest
         public void Task_GetCompanyById_Return_OkResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
+            Company companies = new Company() {CompanyCode="C001" };
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            _repository.Setup<Task<Company>>(mock => mock.GetCompanybyCode(It.IsAny<string>())).Returns(Task.FromResult<Company>(companies));
+
             var companyId = "C001";
 
-            //Act  
+             //Act  
             var data = controller.info(companyId);
-
-            //Assert  
-            if (data != null)
-                Assert.IsType<OkResult>(data);
+           
+            //Assert             
+            Assert.IsType<OkObjectResult>(data.Result.Result);    
         }
 
         [Fact]
         public void Task_GetCompanyById_Return_NotFoundResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
+            Company companies = null;
+
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            _repository.Setup<Task<Company>>(mock => mock.GetCompanybyCode(It.IsAny<string>())).Returns(Task.FromResult<Company>(companies));
 
             var companyId = "C0023";
 
             //Act  
             var data = controller.info(companyId);
-
+          
             //Assert  
-            if (data != null)
-                Assert.IsType<NotFoundResult>(data);
+            Assert.IsType<NotFoundObjectResult>(data.Result.Result);
         }
 
         [Fact]
         public void Task_GetCompanyById_Return_BadRequestResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
-            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            Company companies = new Company() { CompanyCode = "C001" };
 
-            string companyId = null;
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
+            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+            _repository.Setup<Task<Company>>(mock => mock.GetCompanybyCode(It.IsAny<string>())).Returns(Task.FromResult<Company>(companies));
+
+            var companyId = "C001";
 
             //Act  
             var data = controller.info(companyId);
 
             //Assert  
-            if (data != null)
-                Assert.IsType<BadRequestResult>(data);
+            Assert.IsType<BadRequestObjectResult>(data.Result.Result);
         }
 
         #endregion
@@ -179,13 +208,18 @@ namespace StockMarket.UnitTest
         public void Task_Add_ValidCompanyData_Return_OkResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
+            Company companies = new Company();
+
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            _repository.Setup(mock => mock.RegisterCompany(It.IsAny<Company>())).Returns(Task.FromResult<Company>(companies));
 
             var company = new Company() { CompanyCode = "C005", CompanyName = "Company5", CompanyCEO = "CEO1",CompanyWebsite="www.Company5.com",CompanyTurnover=60000000,CreatedBy="chandana.natani@cognizant.com", CreatedDate = DateTime.Now };
 
@@ -193,30 +227,33 @@ namespace StockMarket.UnitTest
             var data = controller.register(company);
 
             //Assert  
-            if (data != null)
-                Assert.IsType<OkResult>(data);           
+            Assert.IsType<OkObjectResult>(data.Result.Result);
         }
 
         [Fact]
         public void Task_Add_InvalidCompany_Return_BadRequest()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
+            Company companies = new Company();
+
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            _repository.Setup(mock => mock.RegisterCompany(It.IsAny<Company>())).Returns(Task.FromResult<Company>(companies));
 
-            Company company = new Company() { CompanyCode = "C005", CompanyName = "Company5", CompanyCEO = "CEO1", CompanyWebsite = "www.Company5.com", CompanyTurnover = 60000000, CreatedBy = "chandana.natani@cognizant.com", CreatedDate = DateTime.Now };
+            var company = new Company() { CompanyCode = "C005", CompanyName = "Company5", CompanyCEO = "CEO1", CompanyWebsite = "www.Company5.com", CompanyTurnover = 60000000, CreatedBy = "chandana.natani@cognizant.com", CreatedDate = DateTime.Now };
 
-            //Act              
+            //Act  
             var data = controller.register(company);
 
             //Assert
-            if (data != null)
-                Assert.IsType<BadRequestResult>(data);
+            Assert.IsType<BadRequestObjectResult>(data.Result.Result);
         }
         #endregion
 
@@ -226,13 +263,19 @@ namespace StockMarket.UnitTest
         public void Task_DeleteCompany_Return_OkResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
+            Company companies = new Company() { CompanyCode = "C001" };
+
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
             _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            _repository.Setup<Task<Company>>(mock => mock.GetCompanybyCode(It.IsAny<string>())).Returns(Task.FromResult<Company>(companies));
+            _repository.Setup(mock => mock.DeleteCompany(It.IsAny<string>()));
 
             var companyId = "C001";
 
@@ -240,52 +283,59 @@ namespace StockMarket.UnitTest
             var data = controller.delete(companyId);
 
             //Assert  
-            if (data != null)
-                Assert.IsType<OkResult>(data);
+            Assert.IsType<OkObjectResult>(data.Result);
         }
 
         [Fact]
         public void Task_DeleteCompany_Return_NotFoundResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
-            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            Company companies = new Company();
 
-            var companyId = "C0046";
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "eyJhbGciOiJodHRwOi8vd3d3LnczLm9yZy8yMDAxLzA0L3htbGRzaWctbW9yZSNobWFjLXNoYTI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6IjMzMjI1OCIsIkZpcnN0TmFtZSI6IkNoYW5kYW5hIiwiTGFzdE5hbWUiOiJOYXRhbmkiLCJVc2VyTmFtZSI6Im5hdGFuaWMiLCJFbWFpbCI6ImNoYW5kYW5hLm5hdGFuaUBjb2duaXphbnQuY29tIiwiaHR0cDovL3NjaGVtYXMueG1sc29hcC5vcmcvd3MvMjAwNS8wNS9pZGVudGl0eS9jbGFpbXMvbmFtZWlkZW50aWZpZXIiOiJlZGNkMDVmNC1mOTVkLTQ1MTQtYTJjYi0zOTZhYTFkOTg3NmIiLCJleHAiOjE2NTkxMDQxMjYsImlzcyI6IlN0b2NrbWFya2V0QXV0aGVudGljYXRpb25TZXJ2ZXIiLCJhdWQiOiJTdG9ja21hcmtldEF1dGhlbnRpY2F0aW9uU2VydmVyIn0.A69lGRWp1_w5MH9OjB8-RXPThP5mDlhAhafaeZ9wHGg";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
+            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+            _repository.Setup(mock => mock.DeleteCompany(It.IsAny<string>()));
+
+            var companyId = "C0026";
 
             //Act  
             var data = controller.delete(companyId);
 
             //Assert  
-            if (data != null)
-                Assert.IsType<NotFoundResult>(data);
+           Assert.IsType<NotFoundObjectResult>(data.Result);
         }
 
         [Fact]
         public void Task_DeleteCompany_Return_BadRequestResult()
         {
             //Arrange  
-            IEnumerable<Company> companies = new List<Company>()
-           {
-               new Company(),
-               new Company(),
-           };
-            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
-            _repository.Setup<Task<IEnumerable<Company>>>(mock => mock.GetAllCompanys()).Returns(Task.FromResult<IEnumerable<Company>>(companies));
+            Company companies = new Company() { CompanyCode = "C001" };
 
-            string companyId = "";
+            string COOKIE_NAME = "Token";
+            string COOKIE_VALUE = "";
+            var cookie = new StringValues(COOKIE_NAME + "=" + COOKIE_VALUE);
+            controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
+            controller.ControllerContext.HttpContext.Request.Headers.Add(HeaderNames.Cookie, cookie);
+
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Key")]).Returns("sdfsdfsjdbf78sdyfssdfsdfbuidfs98gdfsdbf");
+            _configuration.SetupGet(x => x[It.Is<string>(s => s == "Jwt:Issuer")]).Returns("InventoryAuthenticationServer");
+            _tokenService.Setup(mock => mock.ValidateToken(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(true);
+            _repository.Setup(mock => mock.DeleteCompany(It.IsAny<string>()));
+
+            var companyId = "C001";
 
             //Act  
             var data = controller.delete(companyId);
 
             //Assert
-            if (data != null)
-            Assert.IsType<BadRequestResult>(data);
+            Assert.IsType<BadRequestObjectResult>(data.Result);
         }
 
         #endregion
