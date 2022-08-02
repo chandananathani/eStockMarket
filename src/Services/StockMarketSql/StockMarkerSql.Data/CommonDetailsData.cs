@@ -10,16 +10,27 @@ using System.Threading.Tasks;
 
 namespace StockMarkerSql.Data
 {
+    /// <summary>
+    /// service class for <see cref="ICommonDetailsData"/>
+    /// </summary>
     public class CommonDetailsData : ICommonDetailsData
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<CommonDetailsData> _logger;
+
+        /// <summary>
+        /// constructor for CommonDetailsData
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="logger"></param>
         public CommonDetailsData(IConfiguration configuration, ILogger<CommonDetailsData> logger)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        public UserInfo GetUserDetails(string email)
+
+        /// <inheritdoc/>
+        public async Task<UserInfo> GetUserDetails(string email)
         {
             try
             {

@@ -5,6 +5,9 @@ using System.Threading.Tasks;
 
 namespace StockMarket.Data.Common
 {
+    /// <summary>
+    /// service class for database settings
+    /// </summary>
     public class DatabaseSettings : IDatabaseSettings
     {
         public string CompanyCollectionName { get; set; }
@@ -13,6 +16,10 @@ namespace StockMarket.Data.Common
         public string ConnectionString { get; set; }
         public string DatabaseName { get; set; }
     }
+
+    /// <summary>
+    /// interface class for database settings
+    /// </summary>
     public interface IDatabaseSettings
     {
         string CompanyCollectionName { get; set; }

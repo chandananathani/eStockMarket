@@ -7,8 +7,15 @@ using System.Collections.Generic;
 
 namespace StockMarket.Data.Common
 {
+    /// <summary>
+    /// service class for <see cref="ICommonDataContext"/>
+    /// </summary>
     public class CommonDataContext : ICommonDataContext
     {
+        /// <summary>
+        /// constructor for CommonDataContext
+        /// </summary>
+        /// <param name="settings"></param>
         public CommonDataContext(IDatabaseSettings settings)
         {
             var client = new MongoClient(settings.ConnectionString);
@@ -19,6 +26,8 @@ namespace StockMarket.Data.Common
                            .ToListAsync();
             CommonDataContextSeed.CommonSeedData(UserDetails);
         }
+
+        /// <inheritdoc/>      
         public IMongoCollection<User> UserDetails { get; }
     }
 }

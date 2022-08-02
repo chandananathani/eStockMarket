@@ -11,14 +11,24 @@ using System.Threading.Tasks;
 
 namespace StockMarketSql.API.Common
 {
+    /// <summary>
+    /// service class for <see cref="ITokenService"/>
+    /// </summary>
     public class TokenService : ITokenService
     {
         private const double EXPIRY_DURATION_MINUTES = 30;
         private readonly ILogger<TokenService> _logger;
+
+        /// <summary>
+        /// constructor for TokenService
+        /// </summary>
+        /// <param name="logger"></param>
         public TokenService(ILogger<TokenService> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        /// <inheritdoc/>
         public string BuildToken(string key, string issuer, UserInfo user)
         {
             try
@@ -45,6 +55,8 @@ namespace StockMarketSql.API.Common
                 return null;
             }
         }
+
+        /// <inheritdoc/>
         public bool ValidateToken(string key, string issuer, string audience, string token)
         {
             var mySecret = Encoding.UTF8.GetBytes(key);

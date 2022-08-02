@@ -4,8 +4,15 @@ using System.Linq;
 
 namespace StockMarket.Data.StockData
 {
+    /// <summary>
+    /// class for stock data context
+    /// </summary>
     public class StockDataContextSeed
     {
+        /// <summary>
+        /// method for fetching stock details
+        /// </summary>
+        /// <param name="stockDetailsCollection"></param>
         public static void StockDetailsSeedData(IMongoCollection<Stock> stockDetailsCollection)
         {
             stockDetailsCollection.Find(s => true).Any();

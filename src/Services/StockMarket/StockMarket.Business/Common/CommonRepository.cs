@@ -9,17 +9,31 @@ using System.Threading.Tasks;
 
 namespace StockMarket.Business.Common
 {
+    /// <summary>
+    /// service class is for <see cref="ICommonRepository"/>
+    /// </summary>
     public class CommonRepository : ICommonRepository
     {
         private readonly ICommonDataContext _context;
         private readonly ILogger<CommonRepository> _logger;
+
+        /// <summary>
+        /// constructor for CommonRepository
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="logger"></param>
         public CommonRepository(ICommonDataContext context, ILogger<CommonRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        List<User> user = new List<User>();
-        public async Task CreateUser(User user)
+
+        /// <summary>
+        /// method is for creating user
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
+       public async Task CreateUser(User user)
         {
             try
             {
@@ -32,6 +46,11 @@ namespace StockMarket.Business.Common
             }
         }
 
+        /// <summary>
+        /// method is for get user details
+        /// </summary>
+        /// <param name="Email"></param>
+        /// <returns></returns>
         public async Task<User> GetUserDetails(string Email)
         {
             FilterDefinition<User> filter = Builders<User>.Filter.Eq(c => c.Email, Email);

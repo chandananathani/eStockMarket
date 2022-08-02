@@ -25,14 +25,20 @@ using Xunit;
 
 namespace StockMarket.UnitTest
 {
+    /// <summary>
+    /// Test class for <see cref="CompanyController"/>
+    /// </summary>
     public class CompanyControllerTest
     {
         readonly Mock<ICompanyRepository> _repository;
         readonly Mock<ILogger<CompanyController>> _logger;
         readonly Mock<IConfiguration> _configuration;
         readonly Mock<ITokenService> _tokenService;
-        readonly CompanyController controller;        
+        readonly CompanyController controller;
 
+        /// <summary>
+        /// constructor for CompanyControllerTest
+        /// </summary>
         public CompanyControllerTest()
         {
              _repository = new Mock<ICompanyRepository>();
@@ -42,9 +48,12 @@ namespace StockMarket.UnitTest
              controller = new CompanyController(_repository.Object, _logger.Object, _configuration.Object, _tokenService.Object);            
         }
 
-        
+
         #region Get All Companys
 
+        /// <summary>
+        /// To verify GetCompanys with valid data and returns OK result
+        /// </summary>
         [Fact]
         public async void Task_GetCompanys_Return_OkResult()
         {
@@ -71,6 +80,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<OkObjectResult>(data.Result);            
         }
 
+        /// <summary>
+        /// To verify GetCompanys with no data and returns NotFound result
+        /// </summary>
         [Fact]
         public void Task_GetCompanys_Return_NotFoundResult()
         {
@@ -95,6 +107,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<NotFoundObjectResult>(data.Result.Result);
         }
 
+        /// <summary>
+        /// To verify GetCompanys with invalid data and returns BadRequest result
+        /// </summary>
         [Fact]
         public void Task_GetCompanys_Return_BadRequestResult()
         {
@@ -120,10 +135,14 @@ namespace StockMarket.UnitTest
             //Assert  
             Assert.IsType<BadRequestObjectResult>(data.Result.Result);
         }
+
         #endregion
 
         #region Get By Company Id  
 
+        /// <summary>
+        /// To verify GetCompanyById with valid data and returns OK result
+        /// </summary>
         [Fact]
         public void Task_GetCompanyById_Return_OkResult()
         {
@@ -149,6 +168,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<OkObjectResult>(data.Result.Result);    
         }
 
+        /// <summary>
+        /// To verify GetCompanyById with no data and returns NotFound result
+        /// </summary>
         [Fact]
         public void Task_GetCompanyById_Return_NotFoundResult()
         {
@@ -175,6 +197,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<NotFoundObjectResult>(data.Result.Result);
         }
 
+        /// <summary>
+        /// To verify GetCompanyById with invalid data and returns BadRequest result
+        /// </summary>
         [Fact]
         public void Task_GetCompanyById_Return_BadRequestResult()
         {
@@ -204,6 +229,10 @@ namespace StockMarket.UnitTest
         #endregion
 
         #region Create  Companys
+
+        /// <summary>
+        /// To verify Add with valid data and returns OK result
+        /// </summary>
         [Fact]
         public void Task_Add_ValidCompanyData_Return_OkResult()
         {
@@ -230,6 +259,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<OkObjectResult>(data.Result.Result);
         }
 
+        /// <summary>
+        /// To verify Add with in valid data and returns OK result
+        /// </summary>
         [Fact]
         public void Task_Add_InvalidCompany_Return_BadRequest()
         {
@@ -255,10 +287,14 @@ namespace StockMarket.UnitTest
             //Assert
             Assert.IsType<BadRequestObjectResult>(data.Result.Result);
         }
+
         #endregion
 
         #region Delete Companys  
 
+        /// <summary>
+        /// To verify DeleteCompany with valid data and returns OK result
+        /// </summary>
         [Fact]
         public void Task_DeleteCompany_Return_OkResult()
         {
@@ -286,6 +322,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<OkObjectResult>(data.Result);
         }
 
+        /// <summary>
+        /// To verify DeleteCompany with no data and returns NotFound result
+        /// </summary>
         [Fact]
         public void Task_DeleteCompany_Return_NotFoundResult()
         {
@@ -312,6 +351,9 @@ namespace StockMarket.UnitTest
            Assert.IsType<NotFoundObjectResult>(data.Result);
         }
 
+        /// <summary>
+        /// To verify DeleteCompany with in valid data and returns BadRequest result
+        /// </summary>
         [Fact]
         public void Task_DeleteCompany_Return_BadRequestResult()
         {

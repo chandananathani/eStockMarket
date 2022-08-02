@@ -10,21 +10,32 @@ using System.Threading.Tasks;
 
 namespace StockMarkerSql.Data
 {
+    /// <summary>
+    /// service class for <see cref="ICompanyDetailsData"/>
+    /// </summary>
     public class CompanyDetailsData : ICompanyDetailsData
     {
         private readonly IConfiguration _configuration;
         private readonly ILogger<CompanyDetailsData> _logger;
+
+        /// <summary>
+        /// constructor for CompanyDetailsData
+        /// </summary>
+        /// <param name="configuration"></param>
+        /// <param name="logger"></param>
         public CompanyDetailsData(IConfiguration configuration, ILogger<CompanyDetailsData> logger)
         {
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        public async void RegisterCompany(CompanyDetails companyInfo)
+
+        /// <inheritdoc/>
+        public async Task RegisterCompany(CompanyDetails companyInfo)
         {
             try
             {
                 string connectionString = _configuration["ConnectionStrings:StockmarketDatabase"];
-                CompanyDetails userInfo = new CompanyDetails();
+                
                 int i = 0;
                 using (SqlConnection connection = new SqlConnection(connectionString))
                 {
@@ -42,6 +53,7 @@ namespace StockMarkerSql.Data
                     connection.Open();
                     i = cmd.ExecuteNonQuery();
                     connection.Close();
+                    _logger.LogInformation("Company details created sucessfully for {CompanyCode}",companyInfo.CompanyCode);
                 }
             }
             catch (Exception ex)

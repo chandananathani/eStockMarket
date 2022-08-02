@@ -21,6 +21,10 @@ using System.Threading.Tasks;
 
 namespace StockMarket.API.Controllers
 {
+    /// <summary>
+    /// Controller class for Token
+    /// </summary>
+
     [Route("api/v1.0/[controller]")]
     [ApiController]
     public class TokenController : ControllerBase
@@ -31,6 +35,13 @@ namespace StockMarket.API.Controllers
         private string generatedToken = null;
         private readonly ILogger<TokenController> _logger;
 
+        /// <summary>
+        /// Constructor for Token Controller
+        /// </summary>
+        /// <param name="config">Specifies to get the object for <see cref="IConfiguration</param>
+        /// <param name="tokenService">Specifies to get the object for <see cref="TokenService"/></param>
+        /// <param name="repository">Specifies to get the object for <see cref="ICommonRepository"/></param>
+        /// <param name="logger">The logger</param>
         public TokenController(IConfiguration config, ITokenService tokenService, ICommonRepository repository, ILogger<TokenController> logger)
         {
             _configuration = config ?? throw new ArgumentNullException(nameof(config));
@@ -38,8 +49,13 @@ namespace StockMarket.API.Controllers
             _repository= repository ?? throw new ArgumentNullException(nameof(repository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
-        
-        
+
+        /// <summary>
+        /// Method to generate token
+        /// </summary>
+        /// <param name="Email">Specifies to get email</param>
+        /// <returns></returns>
+
         [AllowAnonymous]
         [HttpGet("{Email}")]
         [ProducesResponseType(typeof(User), (int)HttpStatusCode.OK)]
@@ -49,6 +65,7 @@ namespace StockMarket.API.Controllers
             {
                 if (string.IsNullOrEmpty(Email))
                 {
+                    _logger.LogError("Email empty");
                     return BadRequest("Please provide credentials");
                 }
 
@@ -66,7 +83,7 @@ namespace StockMarket.API.Controllers
                     }
                     else
                     {
-                        _logger.LogWarning("Invalid JWT token");
+                        _logger.LogError("Invalid JWT token");
                         return BadRequest("Invalid JWT Token");
                     }
                 }
@@ -82,6 +99,12 @@ namespace StockMarket.API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        /// <summary>
+        /// Method to create user
+        /// </summary>
+        /// <param name="User">Specifies to get<see cref="User"/></param>
+        /// <returns></returns>
 
         [ApiExplorerSettings(IgnoreApi = true)]
         [HttpPost]

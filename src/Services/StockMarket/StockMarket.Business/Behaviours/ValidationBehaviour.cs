@@ -9,12 +9,22 @@ using System.Threading.Tasks;
 
 namespace StockMarket.Business.Behaviours
 {
+    /// <summary>
+    /// class for ValidationBehaviour
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     public class ValidationBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
          where TRequest : IRequest<TResponse>
     {
         private readonly IEnumerable<IValidator<TRequest>> _validators;
         private readonly ILogger<TRequest> _logger;
 
+        /// <summary>
+        /// constructor for ValidationBehaviour
+        /// </summary>
+        /// <param name="validators"></param>
+        /// <param name="logger"></param>
         public ValidationBehaviour(IEnumerable<IValidator<TRequest>> validators, ILogger<TRequest> logger)
         {
             _validators = validators;
@@ -22,6 +32,13 @@ namespace StockMarket.Business.Behaviours
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// metgod is used to handle the validations
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="next"></param>
+        /// <returns></returns>
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
             try

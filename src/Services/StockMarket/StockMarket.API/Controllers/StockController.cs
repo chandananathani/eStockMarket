@@ -16,6 +16,10 @@ using System.Threading.Tasks;
 
 namespace StockMarket.API.Controllers
 {
+    /// <summary>
+    /// Controller calss for Stock
+    /// </summary>
+    
     [ApiController]
     [Route("api/v1.0/[controller]")]
     public class StockController : ControllerBase
@@ -25,7 +29,16 @@ namespace StockMarket.API.Controllers
         private readonly IMediator _mediator;
         private readonly ITokenService _tokenService;
         public readonly IConfiguration _configuration;
-       
+
+        /// <summary>
+        /// Constructor for Stock Controller
+        /// </summary>
+        /// <param name="repository">Specifies to get the object for <see cref="StockRepository"/></param>
+        /// <param name="logger">The logger</param>
+        /// <param name="mediator">Specifies to get the object for <see cref="IMediator"/></param>
+        /// <param name="tokenService">Specifies to get the object for <see cref="TokenService"/></param>
+        /// <param name="config">Specifies to get the object for <see cref="IConfiguration"/></param>
+
         public StockController(IStockRepository repository, ILogger<StockController> logger, IMediator mediator, ITokenService tokenService, IConfiguration config)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
@@ -35,7 +48,12 @@ namespace StockMarket.API.Controllers
             _configuration = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        [Authorize]
+        /// <summary>
+        /// Method is used for creating stock data for company Id
+        /// </summary>
+        /// <param name="CreateStockCommand">Specifies to get <see cref="CreateStockCommand"/></param>
+        /// <returns>Awaitable task with Stock Data</returns>
+
         [HttpPost]
         [ProducesResponseType((int)HttpStatusCode.OK)]
         public async Task<ActionResult<Stock>> add([FromBody] CreateStockCommand command)
@@ -68,7 +86,14 @@ namespace StockMarket.API.Controllers
 
         }
 
-        [Authorize]
+        /// <summary>
+        /// Method is used for getting stock data with company Id, start date, end date
+        /// </summary>
+        /// <param name="CompanyCode">Specifies to get companycode</param>
+        /// <param name="StartDate">Specifies to get tartDate</param>
+        /// <param name="EndDate">Specifies to get endDate</param>
+        /// <returns>Awaitable task with Stock Data</returns>
+
         [HttpGet("{CompanyCode}/{StartDate}/{EndDate}")]
         [ProducesResponseType((int)HttpStatusCode.NotFound)]
         [ProducesResponseType(typeof(IEnumerable<StockDetailsvm>), (int)HttpStatusCode.OK)]

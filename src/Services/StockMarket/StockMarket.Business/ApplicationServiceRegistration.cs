@@ -6,8 +6,16 @@ using System.Reflection;
 
 namespace StockMarket.Business
 {
+    /// <summary>
+    /// class for ApplicationServiceRegistration
+    /// </summary>
     public static class ApplicationServiceRegistration
     {
+        /// <summary>
+        /// method for service configurations
+        /// </summary>
+        /// <param name="services"></param>
+        /// <returns>ServiceCollection</returns>
         public static IServiceCollection AddApplicationServices(this IServiceCollection services)
         {
             services.AddAutoMapper(Assembly.GetExecutingAssembly());

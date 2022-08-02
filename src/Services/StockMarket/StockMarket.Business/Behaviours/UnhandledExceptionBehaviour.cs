@@ -6,16 +6,32 @@ using System.Threading.Tasks;
 
 namespace StockMarket.Business.Behaviours
 {
+    /// <summary>
+    /// class is for UnhandledExceptionBehaviour
+    /// </summary>
+    /// <typeparam name="TRequest"></typeparam>
+    /// <typeparam name="TResponse"></typeparam>
     public class UnhandledExceptionBehaviour<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
         where TRequest : IRequest<TResponse>
     {
         private readonly ILogger<TRequest> _logger;
 
+        /// <summary>
+        /// constructor for UnhandledExceptionBehaviour
+        /// </summary>
+        /// <param name="logger"></param>
         public UnhandledExceptionBehaviour(ILogger<TRequest> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// Method is used for hadle the request
+        /// </summary>
+        /// <param name="request"></param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="next"></param>
+        /// <returns></returns>
         public async Task<TResponse> Handle(TRequest request, CancellationToken cancellationToken, RequestHandlerDelegate<TResponse> next)
         {
             try

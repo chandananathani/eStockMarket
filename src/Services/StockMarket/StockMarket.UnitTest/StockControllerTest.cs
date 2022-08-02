@@ -22,6 +22,9 @@ using Xunit;
 
 namespace StockMarket.UnitTest
 {
+    /// <summary>
+    /// Test class for <see cref="StockController"/>
+    /// </summary>
     public class StockControllerTest
     {
         readonly Mock<IStockRepository> _repository;
@@ -30,6 +33,10 @@ namespace StockMarket.UnitTest
         readonly Mock<ITokenService> _tokenService;
         readonly StockController controller;
         readonly Mock<IMediator> _mediator;
+
+        /// <summary>
+        /// constructor for StockControllerTest
+        /// </summary>
         public StockControllerTest()
         {
             _repository = new Mock<IStockRepository>();
@@ -41,6 +48,9 @@ namespace StockMarket.UnitTest
         }
         #region Get By Company Id, start date, end date 
 
+        /// <summary>
+        /// To verify GetStockById with valid data and returns OK result
+        /// </summary>
         [Fact]
         public async void Task_GetStockById_Return_OkResult()
         {
@@ -70,6 +80,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<OkObjectResult>(data.Result);
         }
 
+        /// <summary>
+        /// To verify GetStockById with no data and returns NotFound result
+        /// </summary>
         [Fact]
         public async void Task_GetStockById_Return_NotFoundResult()
         {
@@ -100,6 +113,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<NotFoundObjectResult>(data.Result);
         }
 
+        /// <summary>
+        /// To verify GetStockById with in valid data and returns BadResult result
+        /// </summary>
         [Fact]
         public async void Task_GetStockById_Return_BadRequestResult()
         {
@@ -132,6 +148,10 @@ namespace StockMarket.UnitTest
         #endregion
 
         #region Create Stocks
+
+        /// <summary>
+        /// To verify Add with valid data and returns OK result
+        /// </summary>
         [Fact]
         public async void Task_Add_ValidStockData_Return_OkResult()
         {
@@ -159,6 +179,9 @@ namespace StockMarket.UnitTest
             Assert.IsType<OkObjectResult>(data.Result);
         }
 
+        /// <summary>
+        /// To verify Add with in valid data and returns BadRequest result
+        /// </summary>
         [Fact]
         public async void Task_Add_InvalidStockData_Return_BadRequest()
         {
@@ -185,6 +208,7 @@ namespace StockMarket.UnitTest
             //Assert  
             Assert.IsType<BadRequestObjectResult>(data.Result);
         }
+
         #endregion
     }
 }

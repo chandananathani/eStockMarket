@@ -10,16 +10,28 @@ using System.Threading.Tasks;
 
 namespace StockMarket.Business.CompanyBusiness
 {
+    /// <summary>
+    /// service class for <see cref="ICompanyRepository"/>
+    /// </summary>
     public class CompanyRepository : ICompanyRepository
     {
         private readonly ICompanyDataContext _context;
         private readonly IStockDataContext _stockcontext;
         private readonly ILogger<CompanyRepository> _logger;
-        public CompanyRepository(ICompanyDataContext context, ILogger<CompanyRepository> logger)
+
+        /// <summary>
+        /// constructor for CompanyRepositiory
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="logger"></param>
+        public CompanyRepository(ICompanyDataContext context, ILogger<CompanyRepository> logger, IStockDataContext stockDataContext)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _stockcontext= stockDataContext ?? throw new ArgumentNullException(nameof(stockDataContext));
         }
+
+        /// <inheritdoc/>
         public async Task RegisterCompany(Company company)
         {
             try
@@ -33,6 +45,7 @@ namespace StockMarket.Business.CompanyBusiness
             }
         }
 
+        /// <inheritdoc/>
         public async Task<IEnumerable<Company>> GetAllCompanys()
         {   
             try
@@ -48,6 +61,8 @@ namespace StockMarket.Business.CompanyBusiness
                 return null;
             }
         }
+
+        /// <inheritdoc/>
         public async Task<Company> GetCompanybyCode(string CompanyCode)
         {
             try
@@ -64,6 +79,7 @@ namespace StockMarket.Business.CompanyBusiness
             }
         }
 
+        /// <inheritdoc/>
         public async Task<bool> DeleteCompany(string CompanyCode)
         {
             try

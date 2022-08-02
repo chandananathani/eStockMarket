@@ -6,8 +6,16 @@ using System.Threading.Tasks;
 
 namespace StockMarketSql.Business
 {
+    /// <summary>
+    /// interface for Company details business layer
+    /// </summary>
     public interface ICompanyDetailsBusiness
     {
-        void RegisterCompany(CompanyDetails company);
+        /// <summary>
+        /// method for creating company
+        /// </summary>
+        /// <param name="company"></param>
+        /// <returns>N/A</returns>
+        Task RegisterCompany(CompanyDetails company);
     }
 }

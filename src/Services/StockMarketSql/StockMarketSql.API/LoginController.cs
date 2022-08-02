@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using StockMarketSql.API.Common;
 using StockMarketSql.Business;
 using StockMarketSql.Models;
@@ -15,54 +16,87 @@ using System.Threading.Tasks;
 
 namespace StockMarketSql.API
 {
+    /// <summary>
+    /// controller class for login
+    /// </summary>
     [Route("api/v1.0/[controller]")]
     [ApiController]
     public class LoginController : ControllerBase
     {
-        public IConfiguration _configuration;
+        public readonly IConfiguration _configuration;
         private readonly ITokenService _tokenService;
         private readonly ICommonDetailsBusiness _repository;
         private string generatedToken = null;
+        private readonly ILogger<LoginController> _logger;
 
-        public LoginController(IConfiguration config, ITokenService tokenService, ICommonDetailsBusiness repository)
+        /// <summary>
+        /// constructor for LoginController
+        /// </summary>
+        /// <param name="config"></param>
+        /// <param name="tokenService"></param>
+        /// <param name="repository"></param>
+        public LoginController(IConfiguration config, ITokenService tokenService, ICommonDetailsBusiness repository, ILogger<LoginController> logger)
         {
             _configuration = config ?? throw new ArgumentNullException(nameof(config));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// method for generating token
+        /// </summary>
+        /// <param name="Email"></param>
+        /// <returns>Token</returns>
         [AllowAnonymous]
         [HttpGet("{Email}")]
         [ProducesResponseType(typeof(UserInfo), (int)HttpStatusCode.OK)]
         public async Task<ActionResult<UserInfo>> GenerateToken(string Email)
         {
-            if (string.IsNullOrEmpty(Email))
+            try
             {
-                return BadRequest("Please provide Email Id");
-            }
-
-            IActionResult response = Unauthorized();
-            UserInfo validUser = _repository.GetUserDetails(Email);
-
-            if (validUser != null && validUser.Email!=null)
-            {
-                generatedToken = _tokenService.BuildToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), validUser);
-
-                if (generatedToken != null)
+                if (string.IsNullOrEmpty(Email))
                 {
-                    HttpContext.Session.SetString("Token", generatedToken);
-                    return Ok(generatedToken);
+                    _logger.LogError("Email empty");
+                    return BadRequest("Please provide credentials");
+                }
+
+                UserInfo validUser = await _repository.GetUserDetails(Email);
+
+                if (validUser != null && !string.IsNullOrEmpty(validUser.Email) && !string.IsNullOrWhiteSpace(validUser.Email))
+                {
+                    generatedToken = _tokenService.BuildToken(_configuration["Jwt:Key"].ToString(), _configuration["Jwt:Issuer"].ToString(), validUser);
+
+                    if (!string.IsNullOrEmpty(generatedToken) && !string.IsNullOrWhiteSpace(generatedToken))
+                    {
+                        //HttpContext.Session.SetString("Token", generatedToken);
+                        _logger.LogInformation("Token Created Sucessfully");
+                        return Ok(generatedToken);
+                    }
+                    else
+                    {
+                        _logger.LogError("Invalid JWT token");
+                        return BadRequest("Invalid JWT Token");
+                    }
                 }
                 else
                 {
-                    return BadRequest("Invalid Credentials");
+                    _logger.LogWarning("User does not exists");
+                    return NotFound("User does not exists");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                return BadRequest("User Does not exists");
+                _logger.LogError(ex, ex.Message);
+                return BadRequest(ex.Message);
             }
         }
+
+        /// <summary>
+        /// method for fetching user details from the database
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
         private UserInfo GetUserDetails(string email)
         {
             string connectionString = _configuration["ConnectionStrings:StockmarketDatabase"];

@@ -8,15 +8,26 @@ using System.Threading.Tasks;
 
 namespace StockMarket.Business.StockBusiness
 {
+    /// <summary>
+    /// service class for <see cref="IStockRepository"/>
+    /// </summary>
     public class StockRepository : IStockRepository
     {
         private readonly IStockDataContext _context;
         private readonly ILogger<StockRepository> _logger;
+
+        /// <summary>
+        /// constructor for StockRepository
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="logger"></param>
         public StockRepository(IStockDataContext context, ILogger<StockRepository> logger)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+
+        /// <inheritdoc/>
         public async Task AddCompanyStockPrice(Stock stockDetails)
         {
             try
@@ -29,6 +40,7 @@ namespace StockMarket.Business.StockBusiness
             }
         }
 
+        /// <inheritdoc/>
         public async Task<StockDetails> GetCompanyStockPrice(string CompanyCode, string StartDate, string EndDate)
         {
             try
